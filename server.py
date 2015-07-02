@@ -13,8 +13,10 @@ usernames = {}
 ENCODING = 'UTF-8'
 
 def receiver(conn, addr):
+	lock = threading.Lock()
 	try:
 		while not shutdown:
+			lock.acquire()
 			data = conn.recv(1024)
 			if data:
 				msg = data.decode(ENCODING)
@@ -23,6 +25,7 @@ def receiver(conn, addr):
 					usernames[addr] = msg
 				else:
 					message_queue.append((addr, msg))
+			lock.release()
 	except:
 		conn.close()
 
