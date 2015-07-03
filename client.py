@@ -7,23 +7,28 @@ BUFFER_SIZE = 1024
 nome = input('nome: ')
 prefix = nome+"> "
 
+def readline_print(msg):
+	buf_len = len(readline.get_line_buffer())
+	sys.stdout.write('\r' + ' '*(buf_len + len(prefix)) + '\r')
+	print(msg)
+	sys.stdout.write(prefix + readline.get_line_buffer())
+	sys.stdout.flush()
+
 def receiver(sock):
-	lock = threading.Lock()
-	data = sock.recv(4096)
-	if data:
-		lock.acquire()
-		print('Testing...\n')
-		msg = data.decode('UTF-8')
-		# c34ded3865d1e24d1fb0c2d3313020f0
-		buf_len = len(readline.get_line_buffer())
-		sys.stdout.write('\r' + ' '*(buf_len + len(prefix)) + '\r')
-		print(msg)
-		sys.stdout.write(prefix + readline.get_line_buffer())
-		sys.stdout.flush()
-		lock.release()
+	while True:
+		try:
+		    data = sock.recv(1024)
+		    if data:
+			    msg = data.decode('UTF-8')
+			    # c34ded3865d1e24d1fb0c2d3313020f0
+			    readline_print(msg)
+		except Exception as e:
+		    print(e)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 s.connect((TCP_IP, TCP_PORT))
+# Send name
 s.send(bytes(nome, 'UTF-8'))
 
 tr = threading.Thread(target = receiver, args = (s, ))

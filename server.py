@@ -13,10 +13,8 @@ usernames = {}
 ENCODING = 'UTF-8'
 
 def receiver(conn, addr):
-	lock = threading.Lock()
 	try:
 		while not shutdown:
-			lock.acquire()
 			data = conn.recv(1024)
 			if data:
 				msg = data.decode(ENCODING)
@@ -25,21 +23,15 @@ def receiver(conn, addr):
 					usernames[addr] = msg
 				else:
 					message_queue.append((addr, msg))
-			lock.release()
 	except:
 		conn.close()
 
 def sender(conn, addr):
-	lock = threading.Lock()
 	last_msg_read = len(message_queue)
 	try:
 		while not shutdown:
-			print(last_msg_read)
-			print('last read is %i\n' % last_msg_read)
-			lock.acquire()
 			time.sleep(5)
 			count = len(message_queue)
-			print('mesage queue is', message_queue)
 			if count > last_msg_read:
 				for m_addr, msg in message_queue[last_msg_read:]:
 					if m_addr != addr:
@@ -48,7 +40,6 @@ def sender(conn, addr):
 						print("sending: " + usernames[m_addr] + ': ' + msg)
 						conn.send(data)
 				last_msg_read = count
-			lock.release()
 	except Exception as e:
 		print(e)
 		print("Closing conn...")
@@ -57,7 +48,7 @@ def sender(conn, addr):
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-#s.setblocking(0)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 
 s.bind((TCP_IP, TCP_PORT))
 s.listen(2)
