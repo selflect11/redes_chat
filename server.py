@@ -7,14 +7,14 @@ import signal
 TCP_IP = '127.0.0.1'
 TCP_PORT = 5005
 BUFFER_SIZE = 20
-message_queue = []
-shutdown = False
-usernames = {}
 ENCODING = 'UTF-8'
+
+message_queue = []
+usernames = {}
 
 def receiver(conn, addr):
 	try:
-		while not shutdown:
+		while True:
 			data = conn.recv(1024)
 			if data:
 				msg = data.decode(ENCODING)
@@ -29,7 +29,7 @@ def receiver(conn, addr):
 def sender(conn, addr):
 	last_msg_read = len(message_queue)
 	try:
-		while not shutdown:
+		while True:
 			time.sleep(5)
 			count = len(message_queue)
 			if count > last_msg_read:
@@ -53,7 +53,7 @@ s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 s.bind((TCP_IP, TCP_PORT))
 s.listen(2)
 print('Server running on port: ',TCP_PORT)
-while not shutdown:
+while True:
 	try:
 		conn, addr = s.accept()
 		tr = threading.Thread(target = receiver, args = (conn, addr))
