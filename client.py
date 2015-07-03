@@ -37,5 +37,4 @@ tr.start()
 while True:
 	msg = input(prefix)
 	s.send(bytes(msg, 'UTF-8'))
-	print('Client Thread is alive:', tr.isAlive())
 s.close()
