@@ -1,7 +1,7 @@
 import socket, threading, readline, sys
 
-TCP_IP = '127.0.0.1'
-TCP_PORT = 5005
+DEFAULT_IP = '127.0.0.1'
+DEFAULT_PORT = 5005
 BUFFER_SIZE = 1024
 
 nome = input('nome: ')
@@ -27,7 +27,13 @@ def receiver(sock):
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-s.connect((TCP_IP, TCP_PORT))
+
+ip = DEFAULT_IP
+if len(sys.argv) > 1:
+	ip = sys.argv[1]
+
+s.connect((ip, DEFAULT_PORT))
+
 # Send name
 s.send(bytes(nome, 'UTF-8'))
 
