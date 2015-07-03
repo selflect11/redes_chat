@@ -4,7 +4,8 @@ import time
 import signal
 
 
-TCP_IP = '127.0.0.1'
+MAX_CONN = 2
+TCP_IP = '0.0.0.0'
 TCP_PORT = 5005
 BUFFER_SIZE = 20
 ENCODING = 'UTF-8'
@@ -21,14 +22,20 @@ def send_to_all(msg, username, addr):
 	# Global sending lock
 	# We can do for each connection also
 	sending_lock.acquire()
-	try:
-		for c_conn, c_addr, c_tr in client_list:
+	dead_clients = []
+	for c_conn, c_addr, c_tr in client_list:
+		try:
 			if c_addr != addr:
 				send_msg(c_conn, username, msg)
-	except Exception as e:
-		print(e)
-	finally:
-		sending_lock.release()
+		except socket.error as e:
+			c_conn.close()
+			dead_clients.append((c_conn, c_addr, c_tr))
+
+	# Remove dead_clients
+	for c in dead_clients:
+		client_list.remove(c)
+
+	sending_lock.release()
 
 def receiver(conn, addr):
 	try:
@@ -52,7 +59,7 @@ s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 
 s.bind((TCP_IP, TCP_PORT))
-s.listen(2)
+s.listen(MAX_CONN)
 print('Server running on port: ',TCP_PORT)
 while True:
 	try:

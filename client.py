@@ -34,7 +34,11 @@ s.send(bytes(nome, 'UTF-8'))
 tr = threading.Thread(target = receiver, args = (s, ))
 tr.start()
 
-while True:
-	msg = input(prefix)
-	s.send(bytes(msg, 'UTF-8'))
-s.close()
+try:
+	while True:
+		msg = input(prefix)
+		s.send(bytes(msg, 'UTF-8'))
+except Exception as e:
+	print(e)
+finally:
+	s.close()
